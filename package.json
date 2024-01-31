@@ -15,8 +15,9 @@
         "build:bundle": "webpack --mode production",
         "watch": "tsc -w",
         "lint": "npm run lint:check",
-        "lint:check": "eslint src --cache --quiet",
-        "lint:fix": "eslint src --cache --fix"
+        "lint:check": "eslint test src --cache --quiet",
+        "lint:fix": "eslint test src --cache --fix",
+        "test": "mocha --timeout 10000 -r ts-node/register \"test/**/*.ts\""
     },
     "devDependencies": {
         "@types/chai": "^4.3.7",

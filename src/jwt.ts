@@ -48,8 +48,8 @@ export function decodeJwtOnlyPayload(jwtToken: string) {
     return jwt;
 }
 
-export function parseJwt(jwtToken: string) {
-    const [header, payload, signature] = jwtToken.split(".");
+export function parseJwt(rawJwt: string) {
+    const [header, payload, signature] = rawJwt.split(".");
     const idTokenStr = atob(payload);
     const idToken = JSON.parse(idTokenStr) as JwtPayload;
     const jwtHash = utils.sha256(Buffer.from(header + "." + payload));
