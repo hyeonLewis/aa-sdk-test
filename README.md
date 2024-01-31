@@ -1,1 +1,1 @@
-# aa-sdk-test
+# aa-sdk-test for zkAuth
