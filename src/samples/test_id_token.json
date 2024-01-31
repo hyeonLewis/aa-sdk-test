@@ -1,0 +1,15 @@
+{
+  "iss": "http://server.example.com",
+  "sub": "248289761001",
+  "aud": "s6BhdRkqt3",
+  "nonce": "0x8d9abb9b140bd3c63db2ce7ee3171ab1c2284fd905ad13156df1069a1918b2b3",
+  "iat": 1311281970,
+  "exp": 1726640433,
+  "name": "Jane Doe",
+  "given_name": "Jane",
+  "family_name": "Doe",
+  "gender": "female",
+  "birthdate": "0000-10-31",
+  "email": "janedoe@example.com",
+  "picture": "http://example.com/janedoe/me.jpg"
+}

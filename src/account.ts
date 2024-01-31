@@ -1,13 +1,9 @@
-import { arrayify, hexConcat, Interface } from "ethers/lib/utils";
-import { ethers } from "ethers";
-import { OIDCRecoveryAccountFactoryV02, OIDCRecoveryAccountV02 } from "./constants/abi";
 import { BaseAccountAPI, BaseApiParams } from "@account-abstraction/sdk/dist/src/BaseAccountAPI";
+import { ethers } from "ethers";
+import { arrayify, hexConcat, Interface } from "ethers/lib/utils";
 
-export interface AuthData {
-    subHash: string;
-    guardian: string;
-    proof: string;
-}
+import { AuthData } from "./authBuilder";
+import { OIDCRecoveryAccountFactoryV02, OIDCRecoveryAccountV02 } from "./constants/abi";
 
 export interface InitCodeParams {
     subHash: ethers.BytesLike;
