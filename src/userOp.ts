@@ -3,7 +3,7 @@ import { TransactionDetailsForUserOp } from "@account-abstraction/sdk/dist/src/T
 import { ethers } from "ethers";
 
 import { RecoveryAccountAPI } from "./account";
-import { Addresses, Networks } from "./constants/Klaytn";
+import { Addresses, Networks } from "./constants/Address";
 
 type PollFunc<T> = (() => T | null) | (() => Promise<T | null>);
 

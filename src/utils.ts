@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-import { Addresses, Networks } from "./constants/Klaytn";
+import { Addresses, Networks } from "./constants/Address";
 
 import { OIDCRecoveryAccountV02, OIDCGuardianV02 } from ".";
 
