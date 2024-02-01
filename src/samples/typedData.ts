@@ -6,7 +6,10 @@ export const typeDataRecovery = {
             { name: "chainId", type: "uint256" },
             { name: "verifyingContract", type: "address" },
         ],
-        VerifyRecover: [{ name: "newOwner", type: "address" }],
+        VerifyRecover: [
+            { name: "sca", type: "address" },
+            { name: "newOwner", type: "address" },
+        ],
     },
     primaryType: "VerifyRecover",
     domain: {
@@ -16,6 +19,7 @@ export const typeDataRecovery = {
         verifyingContract: "", // Need to fill in
     },
     message: {
+        sca: "", // Need to fill in
         newOwner: "", // Need to fill in
     },
 };

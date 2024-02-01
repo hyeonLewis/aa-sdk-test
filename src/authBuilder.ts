@@ -12,6 +12,7 @@ export interface typeDataArgs {
     verifyingContract: string;
     newOwner: string;
     name: string;
+    sca: string;
     chainId: number;
     version?: string;
 }
@@ -23,6 +24,7 @@ export interface AuthData {
 }
 
 export class AuthBuilder {
+    public sca: string | Contract;
     public guardian;
     public jwtProvider;
     public chainId;
@@ -33,7 +35,8 @@ export class AuthBuilder {
     private _pubSignals: string[] = [];
     private _proof = "";
 
-    constructor(subHash: string, guardian: string | Contract, jwtProvider: IJwtProvider, newOwner: string, salt: string, chainId = 31337) {
+    constructor(sca: string | Contract, subHash: string, guardian: string | Contract, jwtProvider: IJwtProvider, newOwner: string, salt: string, chainId = 31337) {
+        this.sca = sca;
         this.subHash = subHash;
         this.guardian = guardian;
         this.jwtProvider = jwtProvider;
@@ -46,6 +49,13 @@ export class AuthBuilder {
         this.buildPubSig();
         this.buildProof();
         return this.buildAuthData();
+    }
+
+    getScaAddress() {
+        if (typeof this.sca !== "string") {
+            return this.sca.address;
+        }
+        return this.sca;
     }
 
     getGuardianAddress() {
@@ -79,10 +89,11 @@ export class AuthBuilder {
         return { subHash: this.subHash, guardian: this.getGuardianAddress(), proof: this._proof };
     }
 
-    nonce(override?: { verifyingContract?: string; name?: string; newOwner?: string }) {
+    nonce(override?: { verifyingContract?: string; sca?: string; name?: string; newOwner?: string }) {
         return calcNonce({
             verifyingContract: override?.verifyingContract ?? this.getGuardianAddress(),
             name: override?.name ?? (this.jwtProvider.aud as string),
+            sca: override?.sca ?? this.getScaAddress(),
             newOwner: override?.newOwner ?? this.newOwner,
             chainId: this.chainId,
         });
@@ -104,12 +115,12 @@ export class AuthBuilder {
 export class MultiAuthBuilder {
     public builders: AuthBuilder[] = [];
 
-    constructor(subHash: string[], guardians: string[] | Contract[], jwtProvider: IJwtProvider[], newOwner: string, salt: string[], chainId = 31337) {
+    constructor(sca: string | Contract, subHash: string[], guardians: string[] | Contract[], jwtProvider: IJwtProvider[], newOwner: string, salt: string[], chainId = 31337) {
         if (guardians.length !== jwtProvider.length) {
             throw new Error("Length mismatch");
         }
         for (let i = 0; i < guardians.length; i++) {
-            const builder = new AuthBuilder(subHash[i], guardians[i], jwtProvider[i], newOwner, salt[i], chainId);
+            const builder = new AuthBuilder(sca, subHash[i], guardians[i], jwtProvider[i], newOwner, salt[i], chainId);
             this.builders.push(builder);
         }
     }
@@ -181,6 +192,7 @@ const fillInTypeData = (args: typeDataArgs) => {
     }
     typedData.domain.verifyingContract = args.verifyingContract;
     typedData.domain.name = args.name;
+    typedData.message.sca = args.sca;
     typedData.message.newOwner = args.newOwner;
 
     typedData.domain.chainId = args.chainId;
