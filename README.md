@@ -10,9 +10,25 @@ TBA
 
 ## 3. Usage
 
+Some input/output values need to be stored in the DB or on the user side (localStorage, Clould backup). The storage format doesn't matter, as long as it's structured in a way that makes it easy to retrieve user data.
+
 ### Create a new AA wallet
 
 1. Prepare arguments:
+
+    - Input
+        - `ownerKey`: Generated private key of the initial owner
+        - `sub`: JWT token's `sub` field after OAuth2 login
+        - `initialGuardian`: Initial guardian address based on the OAuth2 provider
+        - `chainId`: Chain ID
+    - Output
+        - `cfAddress`: Calculated AA wallet address
+        - `salt`: Salt to generate subHash. The saltSeed is `sub`
+    - Save
+        - `ownerKey`: Save to user side (can't be saved to DB since it's non-custodial wallet)
+        - `cfAddress`: Save to DB or user side
+        - `salt` or `saltSeed`: Save to DB or user side
+        - `sub`: Optionally save to DB or user side to reuse it in the future without re-login (e.g. to remove guardian)
 
     ```js
     const signer = new ethers.Wallet(ownerKey, JsonRpcProvider);
@@ -34,6 +50,11 @@ TBA
 
 2. Get User's JWT token:
 
+    - Input
+        - `aud`: Audience of the JWT token
+
+    Note: This is different from the JWT token used in the login process. But it should be generated based on the same `sub` and `aud`. (Same user email used in the login process)
+
     ```js
     const args: typeDataArgs = {
         verifyingContract: initialGuardian,
@@ -49,12 +70,17 @@ TBA
 
 3. Deploy AA wallet:
 
+    - Input
+        - `userJwtToken`: JWT token of the user taken from the previous step
+        - `newOIDCProvider`: Provider name (e.g. google, apple, etc.)
+
     ```js
     const decodedPayloadJwt = decodeJwtOnlyPayload(userJwtToken);
     // Note that decodedPayloadJwt is the same as idToken.sub
     const subHash = calcSubHash(decodedPayloadJwt.payload.sub, salt);
     const confUrl = OIDCProviders.find(p => p.name === newOIDCProvider.toLowerCase())?.confUrl;
     const jwkUrl = OIDCProviders.find(p => p.name === newOIDCProvider.toLowerCase())?.jwkUrl;
+    const jwks = await getJWKs(newOIDCProvider);
 
     const authBuilder = new AuthBuilder(
       cfAddress,
@@ -63,19 +89,27 @@ TBA
       new JwtProvider(confUrl, jwkUrl, decodedPayloadJwt, jwks as RsaJsonWebKey),
       signer.address,
       salt,
-      network.chainId,
+      chainId,
     );
 
     await scw.deployAndRecover(authBuilder.build());
-    // Save data to DB if needed
     ...
     ```
 
 ### Add a new Guardian
 
-1. Prepare a JWT token for the new Guardian (Note: Nonce isn't needed)
+1. Prepare a JWT token from the target OIDC provider for the new Guardian (Note: Nonce isn't important)
 
 2. Add the new Guardian
+
+    - Input
+        - `newSub`: JWT token's `sub` field taken from the previous step
+        - `newSalt`: Salt to generate subHash. The saltSeed is `newSub`
+        - `newGuardian`: New guardian address based on the provider
+        - `newThreshold`: New threshold after adding the guardian
+    - Save
+        - `newSalt` or `newSaltSeed`: Save to DB or user side
+        - `newSub`: Optionally save to DB or user side to reuse it in the future without re-login (e.g. to remove guardian)
 
     ```js
     const newSalt = await calcSalt(newSub);
@@ -87,14 +121,13 @@ TBA
         entryPointAddress: Addresses[chainId].entryPointAddr,
     };
     const scw = new RecoveryAccountAPI(signer, param, Addresses[chainId].oidcRecoveryFactoryV02Addr);
-    const data = scw.encodeRemoveGuardian(targetGuardian, newSubHash, newThreshold);
+    const data = scw.encodeAddGuardian(newGuardian, newSubHash, newThreshold);
     const tx: TransactionDetailsForUserOp = {
         target: cfAddress,
         data: data,
         value: 0,
     };
     const uorc = await createAndSendUserOp(scw, bundlerUrl, chainId, tx);
-    // Save a new guardian if needed
     ...
     ```
 
@@ -102,9 +135,16 @@ TBA
 
 1. Prepare `sub` and `guardian` to remove.
 
-    - If `sub` isn't stored in DB, you need to get user's JWT token.
+    - If `sub` isn't stored in DB or user side, you need to get user's JWT token.
 
 2. Remove the Guardian
+
+    - Input
+        - `targetSub`: JWT token's `sub` field taken from the previous step
+        - `targetGuardian`: Guardian address to remove
+        - `newThreshold`: New threshold after removing the guardian
+    - Delete
+        - Delete saved guardian's `sub` and `salt/saltSeed` from DB or user side
 
     ```js
     const newSalt = await calcSalt(targetSub);
@@ -123,13 +163,18 @@ TBA
         value: 0,
     };
     const uorc = await createAndSendUserOp(scw, bundlerUrl, chainId, tx);
-    // Remove a guardian if needed
     ...
     ```
 
 ### Recover an AA wallet
 
-1. Prepare user's recovery JWT tokens based on registered guardian and `threshold`.
+1. Prepare user's recovery JWT tokens above a `threshold` based on registered guardians.
+
+    - Input
+        - `newOwnerAddress`: New owner's address
+        - `guardians`: Guardian addresses
+        - `cfAddress`: AA wallet address
+        - `chainId`: Chain ID
 
     ```js
     const args: typeDataArgs = {
@@ -137,13 +182,21 @@ TBA
         sca: cfAddress,
         newOwner: newOwnerAddress,
         name: aud,
-        chainId: network.chainId,
+        chainId: chainId,
     };
     const nonce = calcNonce(args);
     // get JWT token from server with nonce
     ```
 
 2. Recover the AA wallet
+
+    - Input
+        - `recoverTokens`: JWT tokens of registered guardians taken from the previous step
+        - `newOwnerKey`: New owner's private key (private key of `newOwnerAddress`)
+    - Save
+        - `newOwnerKey`: Save to user side (can't be saved to DB since it's non-custodial wallet)
+    - Delete
+        - Delete previous owner's private key from user side
 
     ```js
     const iss: string[] = [];
@@ -181,7 +234,7 @@ TBA
         new JwtProvider(confUrls[idx], jwkUrls[idx], decodeJwtOnlyPayload(recoverToken), jwks[idx]),
         newOwnerAddress,
         salts[idx],
-        network.chainId,
+        chainId,
       );
 
       await scw.requestRecover(newOwnerAddress, authBuilder.build());
