@@ -1,3 +1,4 @@
+import axios from "axios";
 import { ethers } from "ethers";
 
 import { Addresses, Networks } from "./constants/Address";
@@ -57,6 +58,22 @@ export const getOwnerAddress = async (cfAddress: string, rpcUrl: string) => {
 
     return ownerAddress;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const promiseMap: { [key: string]: Promise<any> } = {};
+
+export async function apiGet(path: string, queryParams?: object) {
+    const key = JSON.stringify({ path, queryParams });
+    promiseMap[key] = promiseMap[key] || axios.get(path, { params: queryParams });
+    try {
+        return (await promiseMap[key])?.data;
+    } catch (err) {
+        console.error(err);
+        return null;
+    } finally {
+        delete promiseMap[key];
+    }
+}
 
 export const getProviderNameFromIss = (iss: string) => {
     if (iss === "https://accounts.google.com") {
