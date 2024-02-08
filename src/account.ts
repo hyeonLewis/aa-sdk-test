@@ -131,36 +131,6 @@ export class RecoveryAccountAPI extends BaseAccountAPI {
         return accountContract.interface.encodeFunctionData("execute", [target, value, data]);
     }
 
-    async deployAndRecover(auth: AuthData) {
-        if (this.initCodeParams == null) {
-            const sca = await this._getAccountContract();
-            this.initCodeParams = await ethers.utils.resolveProperties({
-                initialGuardianAddress: sca.initialGuardian(),
-                subHash: sca.initialSubHash(),
-                initialOwnerAddress: sca.initialOwner(),
-                index: sca.idx() ?? 0,
-                chainIdOrZero: sca.chainIdOrZero(),
-            });
-        }
-
-        if (auth.guardian != this.initCodeParams?.initialGuardianAddress) {
-            throw new Error("guardian address mismatch");
-        }
-
-        const factory = await this._getFactoryContract();
-        console.log(this.initCodeParams);
-        const tx = await factory.createAccount(
-            this.initCodeParams.subHash,
-            this.initCodeParams.initialGuardianAddress,
-            this.initCodeParams.initialOwnerAddress,
-            this.initCodeParams.index ?? 0,
-            this.initCodeParams.chainIdOrZero
-        );
-        await tx.wait();
-
-        await this.requestRecover(await this.signer.getAddress(), auth);
-    }
-
     async requestRecover(newOwner: string, auth: AuthData) {
         const sca = await this._getAccountContract();
         const tx = await sca.requestRecover(newOwner, auth);
