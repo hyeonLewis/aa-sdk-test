@@ -59,11 +59,6 @@ export function parseJwt(rawJwt: string) {
 
 export function calcSubHash(sub: string, salt: string) {
     return utils.sha256(Buffer.from(salt + sub));
-
-    // TODO: below are for improvement.
-    // const saltHash = utils.keccak256(Buffer.from(salt));
-    // const saltHashBuf = Buffer.from(saltHash.replace(/^0x/, ""), "hex");
-    // return utils.keccak256(Buffer.from(saltHashBuf + sub));
 }
 
 export const whiteList = ["iat", "exp", "aud", "iss", "nonce"];

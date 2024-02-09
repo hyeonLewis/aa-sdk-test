@@ -9,14 +9,25 @@ import { OIDCRecoveryAccountV02, OIDCGuardianV02 } from ".";
 export const getThreshold = async (cfAddress: string, rpcUrl: string) => {
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const oidcRecoveryAccount = new ethers.Contract(cfAddress, OIDCRecoveryAccountV02, provider);
-    const threshold = await oidcRecoveryAccount.threshold();
-    return Number(threshold);
+    try {
+        const threshold = await oidcRecoveryAccount.threshold();
+        return Number(threshold);
+    } catch (err) {
+        console.error(err);
+        return 0;
+    }
 };
 
 export const getIss = async (cfAddress: string, rpcUrl: string) => {
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const oidcIss: string[] = [];
-    const guardianAddress = await getGuardians(cfAddress, rpcUrl);
+    let guardianAddress;
+    try {
+        guardianAddress = await getGuardians(cfAddress, rpcUrl);
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
 
     for (const address of guardianAddress) {
         const guardian = new ethers.Contract(address, OIDCGuardianV02, provider);
@@ -29,34 +40,47 @@ export const getIss = async (cfAddress: string, rpcUrl: string) => {
 export const getGuardians = async (cfAddress: string, rpcUrl: string) => {
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const oidcRecoveryAccount = new ethers.Contract(cfAddress, OIDCRecoveryAccountV02, provider);
-    const guardians = await oidcRecoveryAccount.getGuardiansInfo();
-    const guardianAddress = guardians.map((guardian: any) => guardian[1]);
-
-    return guardianAddress;
+    try {
+        const guardians = await oidcRecoveryAccount.getGuardiansInfo();
+        const guardianAddress = guardians.map((guardian: any) => guardian[1]);
+        return guardianAddress;
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
 };
 
 export const getInitialOwnerAddress = async (cfAddress: string, rpcUrl: string) => {
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const oidcRecoveryAccount = new ethers.Contract(cfAddress, OIDCRecoveryAccountV02, provider);
-    const initialOwnerAddress = await oidcRecoveryAccount.initialOwner();
-
-    return initialOwnerAddress;
+    try {
+        return await oidcRecoveryAccount.initialOwner();
+    } catch (err) {
+        console.error(err);
+        return "";
+    }
 };
 
 export const getInitialGuardianAddress = async (cfAddress: string, rpcUrl: string) => {
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const oidcRecoveryAccount = new ethers.Contract(cfAddress, OIDCRecoveryAccountV02, provider);
-    const initialGuardianAddress = await oidcRecoveryAccount.initialGuardian();
-
-    return initialGuardianAddress;
+    try {
+        return await oidcRecoveryAccount.initialGuardian();
+    } catch (err) {
+        console.error(err);
+        return "";
+    }
 };
 
 export const getOwnerAddress = async (cfAddress: string, rpcUrl: string) => {
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const oidcRecoveryAccount = new ethers.Contract(cfAddress, OIDCRecoveryAccountV02, provider);
-    const ownerAddress = await oidcRecoveryAccount.owner();
-
-    return ownerAddress;
+    try {
+        return await oidcRecoveryAccount.owner();
+    } catch (err) {
+        console.error(err);
+        return "";
+    }
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

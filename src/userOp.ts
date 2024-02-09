@@ -45,7 +45,6 @@ async function createAdjustedSignedUserOp(smartWallet: RecoveryAccountAPI, tx: T
 
 export async function createAndSendUserOp(smartWallet: RecoveryAccountAPI, bundlerUrl: string, chainId: Networks, tx: TransactionDetailsForUserOp) {
     const signedUo = await createAdjustedSignedUserOp(smartWallet, tx);
-
     const rpc = new HttpRpcClient(bundlerUrl, Addresses[chainId].entryPointAddr, chainId);
     const uoHash = await rpc.sendUserOpToBundler(signedUo);
     await new Promise((resolve) => {
