@@ -14,7 +14,7 @@ Some input/output values need to be stored in the DB or on the user side (localS
 
 ### Create a new AA wallet
 
-1. Prepare arguments:
+1. Create and Save Wallet
 
     - Input
         - `ownerKey`: Generated private key of the initial owner
@@ -46,55 +46,10 @@ Some input/output values need to be stored in the DB or on the user side (localS
 
     const scw = new RecoveryAccountAPI(signer, params, Addresses[chainId].oidcRecoveryFactoryV02Addr);
     const cfAddress = await scw.getAccountAddress();
+    // Save wallet as your own
     ```
 
-2. Get User's JWT token:
-
-    - Input
-        - `aud`: Audience of the JWT token
-
-    Note: This is different from the JWT token used in the login process. But it should be generated based on the same `sub` and `aud`. (Same user email used in the login process)
-
-    ```js
-    const args: typeDataArgs = {
-        verifyingContract: initialGuardian,
-        sca: cfAddress,
-        newOwner: signer.address,
-        name: aud,
-        chainId: chainId,
-    };
-    const nonce = calcNonce(args);
-    // get JWT token from server with nonce
-    ...
-    ```
-
-3. Deploy AA wallet:
-
-    - Input
-        - `userJwtToken`: JWT token of the user taken from the previous step
-        - `newOIDCProvider`: Provider name (e.g. google, apple, etc.)
-
-    ```js
-    const decodedPayloadJwt = decodeJwtOnlyPayload(userJwtToken);
-    // Note that decodedPayloadJwt is the same as idToken.sub
-    const subHash = calcSubHash(decodedPayloadJwt.payload.sub, salt);
-    const confUrl = OIDCProviders.find(p => p.name === newOIDCProvider.toLowerCase())?.confUrl;
-    const jwkUrl = OIDCProviders.find(p => p.name === newOIDCProvider.toLowerCase())?.jwkUrl;
-    const jwks = await getJWKs(newOIDCProvider);
-
-    const authBuilder = new AuthBuilder(
-      cfAddress,
-      subHash,
-      params.initialGuardianAddress,
-      new JwtProvider(confUrl, jwkUrl, decodedPayloadJwt, jwks as RsaJsonWebKey),
-      signer.address,
-      salt,
-      chainId,
-    );
-
-    await scw.deployAndRecover(authBuilder.build());
-    ...
-    ```
+    Note: This stage makes `ghost` wallet, which means it's not been acutally deployed on the chain. It will be deployed with `initCode` when user sends a first userOp with the wallet.
 
 ### Add a new Guardian
 
@@ -131,9 +86,11 @@ Some input/output values need to be stored in the DB or on the user side (localS
     ...
     ```
 
+    Note: It's possible to add a new guardian even if the wallet is `ghost` wallet.
+
 ### Remove a Guardian
 
-1. Prepare `sub` and `guardian` to remove.
+1. Prepare `sub` and `guardian` to remove
 
     - If `sub` isn't stored in DB or user side, you need to get user's JWT token.
 
@@ -168,7 +125,9 @@ Some input/output values need to be stored in the DB or on the user side (localS
 
 ### Recover an AA wallet
 
-1. Prepare user's recovery JWT tokens above a `threshold` based on registered guardians.
+If user wallet is `ghost` wallet, strongly recommend prevent user to enter the recovery process.
+
+1. Prepare user's recovery JWT tokens above a `threshold` based on registered guardians
 
     - Input
         - `newOwnerAddress`: New owner's address
@@ -188,7 +147,7 @@ Some input/output values need to be stored in the DB or on the user side (localS
     // get JWT token from server with nonce
     ```
 
-2. Recover the AA wallet
+2. Recover it
 
     - Input
         - `recoverTokens`: JWT tokens of registered guardians taken from the previous step
