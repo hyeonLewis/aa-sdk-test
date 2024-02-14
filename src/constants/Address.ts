@@ -34,11 +34,11 @@ const BAOBAB: Addresses = {
     oidcRecoveryFactoryV02Addr: "0xd717B50719324eb321E884712a5cDc33d868aF88",
     zkVerifierV02Addr: "0xC7B94E3827FD4D2c638EEae2e9219Da063b5BB55",
     manualJwksProviderAddr: "0xF871E80Ac5F679f9137Db4091841F0657dFD2B04",
-    googleGuardianV02Addr: "0x40eA3Fb3B1e7f2FeE7B904a1Be838Ad46c570622",
-    kakaoGuardianV02Addr: "0x2b65C2D002Db674fb8ee55Fa27dA0fdB49426bb6",
+    googleGuardianV02Addr: "0xcB843F8D70011095E19BE0Bb081A59876b6E69c3",
+    kakaoGuardianV02Addr: "0x635179B11a5458A4840Dfc6fD0c0a1601cf3CF35",
     appleGuardianV02Addr: undefined,
     lineGuardianV02Addr: undefined,
-    twitchGuardianV02Addr: "0x50785d8B763F4D2EC05E6AB91a8e2E8AEF6B471d",
+    twitchGuardianV02Addr: "0xe5e77a14CF722B4C0C6d5d140ef9B0b17105Cf60",
     counterAddr: "0x3F2201Db69c7bD8427FD816ca4d38CC17B448d90",
 };
 
