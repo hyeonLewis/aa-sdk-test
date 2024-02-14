@@ -112,16 +112,25 @@ export class RecoveryAccountAPI extends BaseAccountAPI {
     }
 
     async getOwner(): Promise<string> {
+        if (await this.checkAccountPhantom()) {
+            return ethers.constants.AddressZero;
+        }
         const accountContract = await this._getAccountContract();
         return await accountContract.owner();
     }
 
     async getPendingOwner(): Promise<string> {
+        if (await this.checkAccountPhantom()) {
+            return ethers.constants.AddressZero;
+        }
         const accountContract = await this._getAccountContract();
         return await accountContract.pendingOwner();
     }
 
     async getSubHash(guardian: string): Promise<string> {
+        if (await this.checkAccountPhantom()) {
+            return ethers.constants.HashZero;
+        }
         const accountContract = await this._getAccountContract();
         return await accountContract.subHash(guardian);
     }
