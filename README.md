@@ -49,7 +49,49 @@ Some input/output values need to be stored in the DB or on the user side (localS
     // Save wallet as your own
     ```
 
-    Note: This stage makes `ghost` wallet, which means it's not been acutally deployed on the chain. It will be deployed with `initCode` when user sends a first userOp with the wallet.
+    This stage makes `phantom` account, which means it's not been acutally deployed on the chain. It will be deployed when user sends its first userOp transaction with the wallet. Also, you can't call account contract
+
+### Send a UserOp transaction
+
+1. Prepare a RecoveryAccountAPI with appropriate signer and parameters
+
+    ```js
+    // If the account hasn't been deployed yet, you need to manually set all the parameters
+    if (isPhantomWallet) {
+      param = {
+        subHash: subHash,
+        initialGuardianAddress: initGuardian,
+        initialOwnerAddress: initOwner,
+        chainIdOrZero: 0,
+        provider: getProvider(network.chainId),
+        entryPointAddress: Addresses.entryPointAddr,
+      };
+    } else {
+      param = {
+        scaAddr: cfAddress,
+        provider: getProvider(network.chainId),
+        entryPointAddress: Addresses.entryPointAddr,
+      };
+    }
+    const smartWallet = new RecoveryAccountAPI(signer, param, Addresses.oidcRecoveryFactoryV02Addr);
+    ```
+
+2. Prepare transaction data
+
+    ```js
+    const tx: TransactionDetailsForUserOp = {
+      target: targetAddress,
+      data: txData,
+      value: value,
+    };
+    ```
+
+3. Send the userOp
+    
+    ```js
+    const uorc = await createAndSendUserOp(smartWallet, bundlerUrl, chainId, tx);
+    ```
+
 
 ### Add a new Guardian
 
