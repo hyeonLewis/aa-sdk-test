@@ -14,7 +14,6 @@ export const resolve = {
     extensions: [".tsx", ".ts", ".js"],
 };
 export const output = {
-    // Output dist/ethers-ext.bundle.js
-    filename: "ethers-ext.bundle.js",
+    filename: "zkauth-sdk.bundle.js",
     path: _resolve(__dirname, "dist"),
 };
