@@ -5,4 +5,5 @@ export * from "./jwt";
 export * from "./jwtProvider";
 export * from "./userOp";
 export * from "./calcSalt";
+export * from "./accountUtils";
 export * from "./utils";
