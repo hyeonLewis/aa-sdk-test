@@ -40,7 +40,11 @@ export class RecoveryAccountAPI extends BaseAccountAPI {
     }
 
     async _getOIDCRecoveryAccountV02(): Promise<ethers.Contract> {
-        const accountContract = new ethers.Contract(await this.getAccountAddress(), OIDCRecoveryAccountV02, this.signer);
+        const accountContract = new ethers.Contract(
+            await this.getAccountAddress(),
+            OIDCRecoveryAccountV02,
+            this.signer
+        );
 
         return accountContract;
     }
