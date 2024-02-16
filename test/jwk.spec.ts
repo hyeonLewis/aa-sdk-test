@@ -3,8 +3,6 @@ import { describe, it } from "mocha";
 
 import { getJWKs } from "../src";
 
-import { jwkUrl } from "./constants";
-
 describe("jwk", () => {
     it("getJWKs", async () => {
         const jwks = await getJWKs("google");

@@ -5,6 +5,10 @@ import { arrayify, hexConcat, Interface } from "ethers/lib/utils";
 import { AuthData } from "./authBuilder";
 import { OIDCRecoveryAccountFactoryV02, OIDCRecoveryAccountV02 } from "./constants/abi";
 
+/**
+ * Needed if user's account is not yet deployed
+ * @Note initial owner might be different from the current owner of the account
+ */
 export interface InitCodeParams {
     subHash: ethers.BytesLike;
     initialGuardianAddress: string;
@@ -13,6 +17,10 @@ export interface InitCodeParams {
     chainIdOrZero: number;
 }
 
+/**
+ * Use this if the account has already been deployed
+ * since all InitCodeParams can be retrieved from the account contract
+ */
 export interface ScaAddrParams {
     scaAddr: string;
 }
@@ -139,11 +147,6 @@ export class RecoveryAccountAPI extends BaseAccountAPI {
         return await accountContract.subHash(guardian);
     }
 
-    async encodeExecute(target: string, value: ethers.BigNumberish, data: string): Promise<string> {
-        const accountContract = await this._getAccountContract();
-        return accountContract.interface.encodeFunctionData("execute", [target, value, data]);
-    }
-
     async requestRecover(newOwner: string, auth: AuthData) {
         const sca = await this._getAccountContract();
         const tx = await sca.requestRecover(newOwner, auth);
@@ -156,6 +159,11 @@ export class RecoveryAccountAPI extends BaseAccountAPI {
             throw new Error("owner is different; did you run the initial recover()?");
         }
         return await this.signer.signMessage(arrayify(userOpHash));
+    }
+
+    async encodeExecute(target: string, value: ethers.BigNumberish, data: string): Promise<string> {
+        const accountContract = await this._getAccountContract();
+        return accountContract.interface.encodeFunctionData("execute", [target, value, data]);
     }
 
     encodeAddGuardian(guardian: string, subHash: string, newThreshold: number) {

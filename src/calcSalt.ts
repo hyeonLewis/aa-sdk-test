@@ -1,3 +1,4 @@
+// @Note Crypto.subtle is only available in localhost or secure contexts (HTTPS).
 function getCrypto() {
     try {
         return window.crypto;
