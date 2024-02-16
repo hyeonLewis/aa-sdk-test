@@ -1,18 +1,30 @@
-import { JsonWebKey } from "crypto";
-
-import { JwtWithNonce } from ".";
-
-export interface RsaJsonWebKey extends JsonWebKey {
-    kid: string;
-    n: string;
-    e: string;
-}
+import { RsaJsonWebKey, JwtWithNonce } from ".";
 
 export interface IJwtProvider {
+    /**
+     * confUrl is the URL of the OpenID Connect discovery document.
+     */
     readonly confUrl: string;
+
+    /**
+     * jwksUrl is the URL of the JSON Web Key Set (JWKS) document.
+     */
     readonly jwksUrl: string;
+
+    /**
+     * aud is the audience of the JWT.
+     */
     readonly aud: string;
+
+    /**
+     * iss is the issuer of the JWT.
+     */
     readonly iss: string;
+
+    /**
+     * jwk is the JSON Web Key (JWK) of the JWT.
+     * needed for authBuilder to generate public signals.
+     */
     readonly jwk: RsaJsonWebKey;
     readonly jwtWithNonce: JwtWithNonce;
 }

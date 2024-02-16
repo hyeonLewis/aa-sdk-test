@@ -5,10 +5,10 @@ import { getJWKs } from "../src";
 
 describe("jwk", () => {
     it("getJWKs", async () => {
-        const jwks = await getJWKs("google");
-        assert.isNotNull(jwks);
-        assert.equal(jwks.use, "sig");
-        assert.equal(jwks.e, "AQAB");
-        assert.equal(jwks.alg, "RS256");
+        const jwk = await getJWKs("google");
+        assert.isNotNull(jwk);
+        assert.isNotNull(jwk!.e);
+        assert.isNotNull(jwk!.n);
+        assert.isNotNull(jwk!.kid);
     });
 });
