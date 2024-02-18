@@ -10,11 +10,15 @@ TBA
 
 ## 3. Usage
 
-Some input/output values need to be stored in the DB or on the user side (localStorage, Clould backup). The storage format doesn't matter, as long as it's structured in a way that makes it easy to retrieve user data.
+Some input/output values need to be stored in the DB or on the user side (localStorage, Cloud backup). The storage format doesn't matter, as long as it's structured in a way that makes it easy to retrieve user data.
 
 ### Create a new AA wallet
 
-1. Create and Save Wallet
+Users can create their zkAuth wallet based on their OAuth2 idToken.
+
+1. Prepare a JWT token from the OIDC provider for the initial owner (Note: Nonce isn't important)
+
+2. Create and Save Wallet
 
     - Input
         - `ownerKey`: Generated private key of the initial owner
@@ -36,7 +40,7 @@ Some input/output values need to be stored in the DB or on the user side (localS
     const subHash = calcSubHash(sub, salt);
 
     const params: InitCodeParams & BaseApiParams = {
-        initialGuardianAddress: initualGuardian,
+        initialGuardianAddress: initialGuardian,
         initialOwnerAddress: signer.address,
         chainIdOrZero: 0,
         subHash: subHash,
@@ -49,29 +53,31 @@ Some input/output values need to be stored in the DB or on the user side (localS
     // Save wallet as your own
     ```
 
-    This stage makes `phantom` account, which means it's not been acutally deployed on the chain. It will be deployed when user sends its first userOp transaction with the wallet. Also, you can't call account contract
+    This stage makes `phantom` account, which means it's not been actually deployed on the chain. It will be deployed when user sends its first userOp transaction with the wallet. But we strongly recommend to deploy the account right after creating it since it won't be recoverable if user loses its private key before deploying it.
 
 ### Send a UserOp transaction
+
+Users can send transaction called `UserOp` with their zkAuth wallet. It requires `ownerKey` to sign the transaction. If the wallet is `phantom` wallet, `UserOp` will contain the deployment process by `initCode`.
 
 1. Prepare a RecoveryAccountAPI with appropriate signer and parameters
 
     ```js
     // If the account hasn't been deployed yet, you need to manually set all the parameters
     if (isPhantomWallet) {
-      param = {
-        subHash: subHash,
-        initialGuardianAddress: initGuardian,
-        initialOwnerAddress: initOwner,
-        chainIdOrZero: 0,
-        provider: getProvider(network.chainId),
-        entryPointAddress: Addresses.entryPointAddr,
-      };
+        param = {
+            subHash: subHash,
+            initialGuardianAddress: initGuardian,
+            initialOwnerAddress: initOwner,
+            chainIdOrZero: 0,
+            provider: getProvider(network.chainId),
+            entryPointAddress: Addresses.entryPointAddr,
+        };
     } else {
-      param = {
-        scaAddr: cfAddress,
-        provider: getProvider(network.chainId),
-        entryPointAddress: Addresses.entryPointAddr,
-      };
+        param = {
+            scaAddr: cfAddress,
+            provider: getProvider(network.chainId),
+            entryPointAddress: Addresses.entryPointAddr,
+        };
     }
     const smartWallet = new RecoveryAccountAPI(signer, param, Addresses.oidcRecoveryFactoryV02Addr);
     ```
@@ -80,20 +86,21 @@ Some input/output values need to be stored in the DB or on the user side (localS
 
     ```js
     const tx: TransactionDetailsForUserOp = {
-      target: targetAddress,
-      data: txData,
-      value: value,
+        target: targetAddress,
+        data: txData,
+        value: value,
     };
     ```
 
 3. Send the userOp
-    
+
     ```js
     const uorc = await createAndSendUserOp(smartWallet, bundlerUrl, chainId, tx);
     ```
 
-
 ### Add a new Guardian
+
+Users can add a new guardian to their zkAuth wallet. It allows same provider but different account to be a guardian. (e.g., different Google account)
 
 1. Prepare a JWT token from the target OIDC provider for the new Guardian (Note: Nonce isn't important)
 
@@ -132,6 +139,8 @@ Some input/output values need to be stored in the DB or on the user side (localS
 
 ### Remove a Guardian
 
+Users can remove a guardian from their zkAuth wallet.
+
 1. Prepare `sub` and `guardian` to remove
 
     - If `sub` isn't stored in DB or user side, you need to get user's JWT token.
@@ -167,7 +176,7 @@ Some input/output values need to be stored in the DB or on the user side (localS
 
 ### Recover an AA wallet
 
-If user wallet is `ghost` wallet, strongly recommend prevent user to enter the recovery process.
+If user wallet is `ghost` wallet, user can't recover it, so delete it and create a new one.
 
 1. Prepare user's recovery JWT tokens above a `threshold` based on registered guardians
 
