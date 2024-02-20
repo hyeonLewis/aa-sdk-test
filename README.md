@@ -31,7 +31,7 @@ Users can create their zkAuth wallet based on their OAuth2 idToken.
     - Save
         - `ownerKey`: Save to user side (can't be saved to DB since it's non-custodial wallet)
         - `cfAddress`: Save to DB or user side
-        - `salt` or `saltSeed`: Save to DB or user side
+        - `saltSeed`: Save to DB or user side
         - `sub`: Optionally save to DB or user side to reuse it in the future without re-login (e.g. to remove guardian)
 
     ```js
@@ -54,6 +54,22 @@ Users can create their zkAuth wallet based on their OAuth2 idToken.
     ```
 
     This stage makes `phantom` account, which means it's not been actually deployed on the chain. It will be deployed when user sends its first userOp transaction with the wallet. But we strongly recommend to deploy the account right after creating it since it won't be recoverable if user loses its private key before deploying it.
+
+3. Deploy Wallet (Strongly recommended)
+
+    The AA wallet can be deployed by i) `Factory.createAccount` or ii) First `UserOp` with `initCode` in the transaction data. Since the owner address needs to be funded with KLAY to send the transaction, it's recommended to use second method, which is more user-friendly.
+
+    ```js
+    const signer = new ethers.Wallet(ownerKey, JsonRpcProvider);
+    const scw = new RecoveryAccountAPI(signer, params, Addresses.oidcRecoveryFactoryV02Addr);
+    const target = cfAddress;
+
+    // You can use any UserOp, so use entryPoint() as an example
+    const data = ethers.utils.keccak256(Buffer.from("entryPoint()")).slice(0, 10);
+
+    // With UserOp, the account will be deployed
+    const uorc = await createAndSendUserOp(scw, target, data, 0, network.chainId);
+    ```
 
 ### Send a UserOp transaction
 
@@ -112,7 +128,7 @@ Users can add a new guardian to their zkAuth wallet. It allows same provider but
         - `newGuardian`: New guardian address based on the provider
         - `newThreshold`: New threshold after adding the guardian
     - Save
-        - `newSalt` or `newSaltSeed`: Save to DB or user side
+        - `newSaltSeed`: Save to DB or user side
         - `newSub`: Optionally save to DB or user side to reuse it in the future without re-login (e.g. to remove guardian)
 
     ```js
@@ -135,8 +151,6 @@ Users can add a new guardian to their zkAuth wallet. It allows same provider but
     ...
     ```
 
-    Note: It's possible to add a new guardian even if the wallet is `ghost` wallet.
-
 ### Remove a Guardian
 
 Users can remove a guardian from their zkAuth wallet.
@@ -152,7 +166,7 @@ Users can remove a guardian from their zkAuth wallet.
         - `targetGuardian`: Guardian address to remove
         - `newThreshold`: New threshold after removing the guardian
     - Delete
-        - Delete saved guardian's `sub` and `salt/saltSeed` from DB or user side
+        - Delete saved guardian's `sub` and `saltSeed` from DB or user side
 
     ```js
     const newSalt = await calcSalt(targetSub);
