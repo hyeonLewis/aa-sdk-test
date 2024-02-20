@@ -1,6 +1,6 @@
 {
     "name": "@lewiskim/zkauth-sdk",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "license": "MIT",
     "description": "SDK for zkAuth",
     "repository": {

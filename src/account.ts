@@ -125,7 +125,7 @@ export class RecoveryAccountAPI extends BaseAccountAPI {
 
     async getOwner(): Promise<string> {
         if (await this.checkAccountPhantom()) {
-            return ethers.constants.AddressZero;
+            return await this.signer.getAddress();
         }
         const accountContract = await this._getAccountContract();
         return await accountContract.owner();
@@ -157,8 +157,7 @@ export class RecoveryAccountAPI extends BaseAccountAPI {
     }
 
     async signUserOpHash(userOpHash: string): Promise<string> {
-        const sca = await this._getAccountContract();
-        if ((await sca.owner()) != (await this.signer.getAddress())) {
+        if ((await this.getOwner()) != (await this.signer.getAddress())) {
             throw new Error("owner is different; did you run the initial recover()?");
         }
         return await this.signer.signMessage(arrayify(userOpHash));
