@@ -1,5 +1,5 @@
 {
-    "name": "zkauth-sdk",
+    "name": "@lewis/zkauth-sdk",
     "version": "1.0.0",
     "license": "MIT",
     "description": "SDK for zkAuth",
