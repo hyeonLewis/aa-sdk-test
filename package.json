@@ -1,8 +1,12 @@
 {
-    "name": "@lewis/zkauth-sdk",
+    "name": "@lewiskim/zkauth-sdk",
     "version": "1.0.0",
     "license": "MIT",
     "description": "SDK for zkAuth",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hyeonLewis/zkauth-sdk.git"
+    },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "files": [
@@ -47,5 +51,12 @@
         "eip-712": "^1.0.0",
         "ethers": "^5.7.0",
         "jwt-decode": "^4.0.0"
+    },
+    "bugs": {
+        "url": "https://github.com/hyeonLewis/zkauth-sdk/issues"
+    },
+    "homepage": "https://github.com/hyeonLewis/zkauth-sdk#readme",
+    "directories": {
+        "test": "test"
     }
 }
