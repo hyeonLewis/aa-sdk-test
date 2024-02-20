@@ -28,3 +28,53 @@ export const getGuardianFromIssOrName = (issOrName: string, chainId: Networks) =
         return "";
     }
 };
+
+export const getProviderNameFromIss = (iss: string) => {
+    if (iss === "https://accounts.google.com") {
+        return "google";
+    } else if (iss === "https://kauth.kakao.com") {
+        return "kakao";
+    } else if (iss === "https://appleid.apple.com") {
+        return "apple";
+    } else if (iss === "https://access.line.me") {
+        return "line";
+    } else if (iss === "https://id.twitch.tv/oauth2") {
+        return "twitch";
+    } else {
+        return "";
+    }
+};
+
+export const getIssFromProviderName = (provider: string | null) => {
+    if (!provider) {
+        return "";
+    }
+    if (provider === "google") {
+        return "https://accounts.google.com";
+    } else if (provider === "kakao") {
+        return "https://kauth.kakao.com";
+    } else if (provider === "apple") {
+        return "https://appleid.apple.com";
+    } else if (provider === "line") {
+        return "https://access.line.me";
+    } else if (provider === "twitch") {
+        return "https://id.twitch.tv/oauth2";
+    } else {
+        return "";
+    }
+};
+
+export const formatProvider = (providers: string[]) => {
+    const formattedProviders: string[] = [];
+    const providerCount: { [key: string]: number } = {};
+    for (const p of providers) {
+        if (providerCount[p]) {
+            providerCount[p] += 1;
+            formattedProviders.push(`${p}#${providerCount[p]}`);
+        } else {
+            providerCount[p] = 1;
+            formattedProviders.push(p);
+        }
+    }
+    return formattedProviders;
+};
