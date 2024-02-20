@@ -147,8 +147,11 @@ export class RecoveryAccountAPI extends BaseAccountAPI {
         return await accountContract.subHash(guardian);
     }
 
-    async requestRecover(newOwner: string, auth: AuthData) {
-        const sca = await this._getAccountContract();
+    async requestRecover(newOwner: string, auth: AuthData, subSigner?: ethers.Wallet) {
+        // TODO: Make separate API for subSigner.
+        const sca = subSigner
+            ? new ethers.Contract(await this.getAccountAddress(), OIDCRecoveryAccountV02, subSigner)
+            : await this._getAccountContract();
         const tx = await sca.requestRecover(newOwner, auth);
         await tx.wait();
     }
