@@ -2,11 +2,14 @@ import { Buffer } from "buffer";
 
 import { getStructHash, keccak256 } from "eip-712";
 import { Contract, utils } from "ethers";
+import { jwtDecode } from "jwt-decode";
 
-import { JwtWithNonce, calcSubHash, maskJWT, whiteList } from "./jwt";
+import { JwtWithNonce, calcSubHash } from "./jwt";
 import { IJwtProvider } from "./jwtProvider";
 import { typeDataRecovery } from "./samples";
 import { sampleProofA, sampleProofB, sampleProofC } from "./samples/constants";
+
+import { ZkauthJwtV02, string2Uints } from ".";
 
 export interface typeDataArgs {
     verifyingContract: string;
@@ -35,7 +38,15 @@ export class AuthBuilder {
     private _pubSignals: string[] = [];
     private _proof = "";
 
-    constructor(sca: string | Contract, subHash: string, guardian: string | Contract, jwtProvider: IJwtProvider, newOwner: string, salt: string, chainId = 31337) {
+    constructor(
+        sca: string | Contract,
+        subHash: string,
+        guardian: string | Contract,
+        jwtProvider: IJwtProvider,
+        newOwner: string,
+        salt: string,
+        chainId = 31337
+    ) {
         this.sca = sca;
         this.subHash = subHash;
         this.guardian = guardian;
@@ -115,7 +126,15 @@ export class AuthBuilder {
 export class MultiAuthBuilder {
     public builders: AuthBuilder[] = [];
 
-    constructor(sca: string | Contract, subHash: string[], guardians: string[] | Contract[], jwtProvider: IJwtProvider[], newOwner: string, salt: string[], chainId = 31337) {
+    constructor(
+        sca: string | Contract,
+        subHash: string[],
+        guardians: string[] | Contract[],
+        jwtProvider: IJwtProvider[],
+        newOwner: string,
+        salt: string[],
+        chainId = 31337
+    ) {
         if (guardians.length !== jwtProvider.length) {
             throw new Error("Length mismatch");
         }
@@ -140,45 +159,64 @@ export type GeneratePubSigOptions = {
     subOffset?: number;
 };
 
-/**
- * @param pubMod      base64-encoded RSA modulus (JwonWebKey.n)
- * @param override For test purpose only. If `subHash` is given, `salt` is ignored.
- */
-export const generatePubSig = (jwt: JwtWithNonce, salt: string, pubMod: string, override?: GeneratePubSigOptions) => {
-    const mod = utils.hexlify(Buffer.from(pubMod, "base64"));
-    if (mod.length !== 514) {
+// @param pubMod base64-encoded string
+// @param pubMod base64-encoded string
+export const generatePubSig = (
+    jwt: string | JwtWithNonce,
+    salt: string,
+    pubMod: string,
+    override?: GeneratePubSigOptions
+) => {
+    if (typeof jwt === "string") {
+        jwt = jwtDecode(jwt, { header: true }) as JwtWithNonce;
+    }
+
+    const modBuf = Buffer.from(pubMod, "base64");
+    if (modBuf.length !== 256) {
         throw new Error("Modulus must be 256 bytes");
     }
 
     const jwtPayload = jwt.payload;
-
     if (typeof override?.subHash === "string") {
         override.subHash = utils.arrayify(override.subHash);
     }
+    const subHash = override?.subHash
+        ? override.subHash
+        : Buffer.from(calcSubHash(jwtPayload.sub, salt).slice(2), "hex");
 
-    const subHash = override?.subHash ? override.subHash : Buffer.from(calcSubHash(jwtPayload.sub, salt).slice(2), "hex");
-    const maskedJwt = maskJWT(jwt, whiteList);
-    const stringifiedMaskedJwt = JSON.stringify(maskedJwt);
+    const pubSignals: string[] = new Array(61).fill(0);
 
-    const subLength = override?.subLen ?? jwtPayload.sub.length;
-    const subOffset = override?.subOffset ?? stringifiedMaskedJwt.indexOf("sub");
-
-    const pubSignals: string[] = new Array(70).fill(0);
-
-    pubSignals[0] = utils.hexZeroPad(subHash.slice(0, 16), 32);
-    pubSignals[1] = utils.hexZeroPad(subHash.slice(16, 32), 32);
-
-    pubSignals[2] = utils.hexZeroPad(utils.hexlify(subOffset + 6), 32);
-    pubSignals[3] = utils.hexZeroPad(utils.hexlify(subLength), 32);
-
-    const modSignals = generateModPubSig(BigInt(mod));
-    for (let i = 4; i < 36; i++) {
-        pubSignals[i] = modSignals[i - 4];
+    const issSignals = generateUints('"' + jwtPayload.iss + '"');
+    for (let i = 0; i < 10; i++) {
+        pubSignals[i] = issSignals[i];
     }
 
-    const jwtSignals = generateJwtPubSig(stringifiedMaskedJwt);
-    for (let i = 36; i < 70; i++) {
-        pubSignals[i] = jwtSignals[i - 36];
+    const audSignals = generateUints((('"' + jwtPayload.aud) as string) + '"');
+    for (let i = 0; i < 10; i++) {
+        pubSignals[i + 10] = audSignals[i];
+    }
+
+    const iatSignals = generateUints(jwtPayload.iat.toString());
+    for (let i = 0; i < 10; i++) {
+        pubSignals[i + 20] = iatSignals[i];
+    }
+
+    const expSignals = generateUints(jwtPayload.exp.toString());
+    for (let i = 0; i < 10; i++) {
+        pubSignals[i + 30] = expSignals[i];
+    }
+
+    const nonceSignals = generateUints('"' + jwtPayload.nonce + '"');
+    for (let i = 0; i < 10; i++) {
+        pubSignals[i + 40] = nonceSignals[i];
+    }
+
+    pubSignals[50] = utils.hexZeroPad(subHash.slice(0, 16), 32);
+    pubSignals[51] = utils.hexZeroPad(subHash.slice(16, 32), 32);
+
+    const modSignals = generateModPubSig(modBuf);
+    for (let i = 0; i < 9; i++) {
+        pubSignals[52 + i] = modSignals[i];
     }
 
     return pubSignals;
@@ -220,16 +258,8 @@ export function calcGuardianId(subHash: string, guardian: string) {
     return utils.keccak256(utils.defaultAbiCoder.encode(["bytes32", "address"], [subHash, guardian]));
 }
 
-export const generateModPubSig = (mod: bigint | Buffer | Uint8Array) => {
-    const signals: string[] = new Array(32).fill(utils.hexZeroPad(utils.toUtf8Bytes(""), 32));
-    if (typeof mod !== "bigint") {
-        mod = BigInt("0x" + mod.toString("hex"));
-    }
-    for (let i = 0; i < signals.length; i++) {
-        signals[i] = utils.hexZeroPad(utils.hexlify(mod & (2n ** 64n - 1n)), 32);
-        mod = mod >> 64n;
-    }
-    return signals;
+export const generateModPubSig = (modBytes: string | Buffer) => {
+    return string2Uints(modBytes, ZkauthJwtV02.maxPubLen);
 };
 
 export const generateJwtPubSig = (jwt: string) => {
@@ -246,6 +276,24 @@ export const generateJwtPubSig = (jwt: string) => {
     return signals;
 };
 
+export const generateUints = (s: string) => {
+    const signals: string[] = new Array(10).fill(utils.hexZeroPad(utils.toUtf8Bytes(""), 32));
+    const numChunks = Math.floor(s.length / 31);
+
+    for (let i = 0; i < numChunks; i++) {
+        signals[i] = "0x00" + utils.hexlify(utils.toUtf8Bytes(s.slice(i * 31, (i + 1) * 31))).replace("0x", "");
+    }
+
+    const lastChunk = utils.toUtf8Bytes(s.slice(numChunks * 31));
+    signals[numChunks] = "0x00" + utils.hexlify(lastChunk).replace("0x", "");
+    signals[numChunks] = signals[numChunks].padEnd(66, "0");
+    signals[9] = utils.hexZeroPad(utils.hexlify(s.length), 32);
+    return signals;
+};
+
 export const generateProof = (kid: string, pA: string[], pB: string[][], pC: string[], pubSignals: string[]) => {
-    return utils.defaultAbiCoder.encode(["string", "uint[2]", "uint[2][2]", "uint[2]", "uint[70]"], [kid, pA, pB, pC, pubSignals]);
+    return utils.defaultAbiCoder.encode(
+        ["string", "uint[2]", "uint[2][2]", "uint[2]", "uint[61]"],
+        [kid, pA, pB, pC, pubSignals]
+    );
 };

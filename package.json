@@ -46,6 +46,7 @@
     "dependencies": {
         "@account-abstraction/contracts": "^0.6.0",
         "@account-abstraction/sdk": "^0.6.0",
+        "@types/lodash": "^4.14.202",
         "axios": "^1.6.2",
         "buffer": "^6.0.3",
         "eip-712": "^1.0.0",

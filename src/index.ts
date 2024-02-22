@@ -6,5 +6,7 @@ export * from "./jwtProvider";
 export * from "./jwkProvider";
 export * from "./userOp";
 export * from "./calcSalt";
-export * from "./accountUtils";
+export * from "./account-utils";
 export * from "./utils";
+export * from "./circuit-helpers";
+export * from "./zkauth-circuit";
