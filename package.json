@@ -1,6 +1,6 @@
 {
     "name": "@lewiskim/zkauth-sdk",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "license": "MIT",
     "description": "SDK for zkAuth",
     "repository": {
@@ -48,6 +48,7 @@
         "@account-abstraction/sdk": "^0.6.0",
         "@types/lodash": "^4.14.202",
         "axios": "^1.6.2",
+        "base64url": "^3.0.1",
         "buffer": "^6.0.3",
         "eip-712": "^1.0.0",
         "ethers": "^5.7.0",

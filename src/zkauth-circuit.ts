@@ -1,4 +1,4 @@
-import { Buffer } from "buffer";
+import base64url from "base64url";
 
 import {
     string2Uints,
@@ -31,8 +31,8 @@ export const ZkauthJwtV02 = {
 
         const payOff = header.length + 1; // position in base64-encoded JWT
         const payLen = payload.length;
-        const pay = Buffer.from(payload, "base64url").toString();
-        const payObject = JSON.parse(Buffer.from(payload, "base64url").toString());
+        const pay = base64url.decode(payload);
+        const payObject = JSON.parse(base64url.decode(payload));
         console.assert(signedJwt.substring(payOff, payOff + payLen) == payload, "payOff");
 
         // [ string ][ 80 ][ 00..00 ][ len ]
@@ -75,8 +75,8 @@ export const ZkauthJwtV02 = {
         const saltedSubBlocks = Math.floor(saltedSub.length / 64) + 1;
 
         // Signature
-        const sigUints = string2Uints(Buffer.from(signature, "base64url"), maxSigLen);
-        const pubUints = string2Uints(Buffer.from(pub, "base64url"), maxPubLen);
+        const sigUints = string2Uints(base64url.toBuffer(signature), maxSigLen);
+        const pubUints = string2Uints(base64url.toBuffer(pub), maxPubLen);
 
         return {
             jwtUints,
@@ -109,7 +109,7 @@ export const ZkauthJwtV02 = {
         const nonceLen = pubsig[49];
         const hSub =
             BigInt(pubsig[50]).toString(16).padStart(32, "0") + BigInt(pubsig[51]).toString(16).padStart(32, "0");
-        const pub = uints2Buffer(pubsig.slice(52, 61)).subarray(0, 256).toString("base64url");
+        const pub = base64url(uints2Buffer(pubsig.slice(52, 61)).subarray(0, 256));
 
         console.log("iss =", iss, ", issLen =", issLen);
         console.log("aud =", aud, ", audLen =", audLen);
