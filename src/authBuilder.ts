@@ -292,6 +292,13 @@ export const generateUints = (s: string) => {
 };
 
 export const generateProof = (kid: string, pA: string[], pB: string[][], pC: string[], pubSignals: string[]) => {
+    pA = pA.slice(0, 2) as string[];
+    pB = [
+        [pB[0][1], pB[0][0]],
+        [pB[1][1], pB[1][0]],
+    ] as string[][];
+    pC = pC.slice(0, 2) as string[];
+
     return utils.defaultAbiCoder.encode(
         ["string", "uint[2]", "uint[2][2]", "uint[2]", "uint[61]"],
         [kid, pA, pB, pC, pubSignals]
