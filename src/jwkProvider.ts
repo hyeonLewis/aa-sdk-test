@@ -8,7 +8,7 @@ export interface RsaJsonWebKey extends JsonWebKey {
     e: string;
 }
 
-export const getJWKs = async (oidcProvider: string, idx?: number) => {
+export const getJWKs = async (oidcProvider: string, kid?: string, idx?: number) => {
     const jwkUrl = OIDCProviders.find((p) => p.name === oidcProvider.toLowerCase())?.jwkUrl;
     if (!jwkUrl) {
         return null;
@@ -22,9 +22,17 @@ export const getJWKs = async (oidcProvider: string, idx?: number) => {
         return null;
     }
 
-    const jwk = res.data.keys[idx ?? 0];
-    if (!jwk) {
-        return null;
+    if (kid) {
+        const jwk = res.data.keys.find((k: { kid: string }) => k.kid === kid);
+        if (!jwk) {
+            return null;
+        }
+        return jwk as RsaJsonWebKey;
+    } else {
+        const jwk = res.data.keys[idx ?? 0];
+        if (!jwk) {
+            return null;
+        }
+        return jwk as RsaJsonWebKey;
     }
-    return jwk as RsaJsonWebKey;
 };
