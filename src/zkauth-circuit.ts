@@ -1,3 +1,5 @@
+import { Buffer } from "buffer";
+
 import {
     string2Uints,
     string2UintsSha256Padded,
