@@ -216,6 +216,7 @@ If user wallet is `ghost` wallet, user can't recover it, so delete it and create
 
     - Input
         - `recoverTokens`: JWT tokens of registered guardians taken from the previous step
+        - `rawRecoverTokens`: Base64 encoded JWT tokens of recoverTokens (include header, payload, and signature)
         - `newOwnerKey`: New owner's private key (private key of `newOwnerAddress`)
     - Save
         - `newOwnerKey`: Save to user side (can't be saved to DB since it's non-custodial wallet)
@@ -229,17 +230,29 @@ If user wallet is `ghost` wallet, user can't recover it, so delete it and create
     const confUrls: string[] = [];
     const jwkUrls: string[] = [];
     const jwks: RsaJsonWebKey[] = [];
+    const proofAndPubSigs: any[] = [];
 
     // recoverTokens are JWT tokens of registered guardians
     for (const recoverToken of recoverTokens) {
       const { iss: issTemp, sub: subTemp } = JSON.parse(recoverToken);
+      const rawRecoverToken = rawRecoverTokens[idx];
+      const header = jwtDecode(rawRecoverToken, { header: true });
       iss.push(issTemp);
       sub.push(subTemp);
       salts.push(await calcSalt(subTemp));
       const provider = getProviderNameFromIss(issTemp);
       confUrls.push(OIDCProviders.find(p => p.name === provider.toLowerCase())?.confUrl as string);
       jwkUrls.push(OIDCProviders.find(p => p.name === provider.toLowerCase())?.jwkUrl as string);
-      jwks.push((await getJWKs(provider)) as RsaJsonWebKey);
+      jwks.push((await getJWKs(provider, header.kid)) as RsaJsonWebKey);
+
+      // Prepare zk proof
+      const processedInput = ZkauthJwtV02.process_input(rawRecoverToken, jwks[idx].n, salts[idx]);
+      const params = {
+        circuit: "zkauth_jwt_v02",
+        input: processedInput,
+      };
+      // getProofAndPubSig function requests zk proof to the zkp server with the given input
+      proofAndPubSigs.push(await getProofAndPubSig(params));
     }
 
     const signer = new ethers.Wallet(newOwnerKey, JsonRpcProvider);
@@ -250,18 +263,14 @@ If user wallet is `ghost` wallet, user can't recover it, so delete it and create
     };
     const scw = new RecoveryAccountAPI(signer, params, Addresses[chainId].oidcRecoveryFactoryV02Addr);
 
-    for (const [idx, recoverToken] of recoverTokens.entries()) {
-      const authBuilder = new AuthBuilder(
-        cfAddress,
-        calcSubHash(sub[idx], salts[idx]),
-        guardians[idx],
-        new JwtProvider(confUrls[idx], jwkUrls[idx], decodeJwtOnlyPayload(recoverToken), jwks[idx]),
-        newOwnerAddress,
-        salts[idx],
-        chainId,
-      );
-
-      await scw.requestRecover(newOwnerAddress, authBuilder.build());
+    for (const [idx] of recoverTokens.entries()) {
+      const proof = proofAndPubSigs[idx].proof;
+      const auth: AuthData = {
+        subHash: calcSubHash(sub[idx], salts[idx]),
+        guardian: guardians[idx],
+        proof: generateProof(jwks[idx].kid, proof.pi_a, proof.pi_b, proof.pi_c, proofAndPubSigs[idx].pubSignals),
+      };
+      await scw.requestRecover(newOwnerAddress, auth, subSigner);
     }
     ...
     ```
