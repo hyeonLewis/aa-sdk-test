@@ -1,3 +1,5 @@
+import { Buffer } from "buffer";
+
 import base64url from "base64url";
 
 import {
@@ -37,7 +39,8 @@ export const ZkauthJwtV02 = {
 
         // [ string ][ 80 ][ 00..00 ][ len ]
         const jwtUints = string2UintsSha256Padded(jwt, maxLen);
-        const jwtBlocks = Math.floor(jwt.length / 64) + 1;
+        // 1 is for 0x80, 8 is for length bits (64 bits)
+        const jwtBlocks = Math.ceil((jwt.length + 1 + 8) / 64);
 
         // Claims
         function claimPos(jwt: string, name: string): number[] {
@@ -70,9 +73,11 @@ export const ZkauthJwtV02 = {
 
         // SaltedSub
         const sub = '"' + payObject["sub"] + '"';
-        const saltedSub = salt + sub;
+        // salt is hex string and sub is ASCII string
+        const saltedSub = Buffer.concat([Buffer.from(salt, "hex"), Buffer.from(sub, "ascii")]);
         const saltedSubUints = string2UintsSha256Padded(saltedSub, maxSaltedSubLen);
-        const saltedSubBlocks = Math.floor(saltedSub.length / 64) + 1;
+        // 1 is for 0x80, 8 is for length bits (64 bits)
+        const saltedSubBlocks = Math.ceil((saltedSub.length + 1 + 8) / 64);
 
         // Signature
         const sigUints = string2Uints(base64url.toBuffer(signature), maxSigLen);
