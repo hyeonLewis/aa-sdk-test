@@ -52,7 +52,8 @@
         "buffer": "^6.0.3",
         "eip-712": "^1.0.0",
         "ethers": "^5.7.0",
-        "jwt-decode": "^4.0.0"
+        "jwt-decode": "^4.0.0",
+        "lodash": "^4.17.21"
     },
     "bugs": {
         "url": "https://github.com/hyeonLewis/zkauth-sdk/issues"
