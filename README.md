@@ -57,7 +57,7 @@ Users can create their zkAuth wallet based on their OAuth2 idToken.
 
 3. Deploy Wallet (Strongly recommended)
 
-    The AA wallet can be deployed by i) `Factory.createAccount` or ii) First `UserOp` with `initCode` in the transaction data. Since the owner address needs to be funded with KLAY to send the transaction, it's recommended to use second method, which is more user-friendly.
+    The AA wallet can be deployed by i) `Factory.createAccount` or ii) First `UserOp` with `initCode` in the transaction data. Since the owner address needs to be funded with KLAY for first method, it's recommended to use second method, which is more user-friendly.
 
     ```js
     const signer = new ethers.Wallet(ownerKey, JsonRpcProvider);
@@ -67,8 +67,14 @@ Users can create their zkAuth wallet based on their OAuth2 idToken.
     // You can use any UserOp, so use entryPoint() as an example
     const data = ethers.utils.keccak256(Buffer.from("entryPoint()")).slice(0, 10);
 
+    const tx: TransactionDetailsForUserOp = {
+        target: target,
+        data: data,
+        value: 0,
+    };
+
     // With UserOp, the account will be deployed
-    const uorc = await createAndSendUserOp(scw, target, data, 0, network.chainId);
+    const uorc = await createAndSendUserOp(scw, bundlerUrl, chainId, tx);
     ```
 
 ### Send a UserOp transaction
@@ -95,7 +101,7 @@ Users can send transaction called `UserOp` with their zkAuth wallet. It requires
             entryPointAddress: Addresses.entryPointAddr,
         };
     }
-    const smartWallet = new RecoveryAccountAPI(signer, param, Addresses.oidcRecoveryFactoryV02Addr);
+    const scw = new RecoveryAccountAPI(signer, param, Addresses.oidcRecoveryFactoryV02Addr);
     ```
 
 2. Prepare transaction data
@@ -111,7 +117,7 @@ Users can send transaction called `UserOp` with their zkAuth wallet. It requires
 3. Send the userOp
 
     ```js
-    const uorc = await createAndSendUserOp(smartWallet, bundlerUrl, chainId, tx);
+    const uorc = await createAndSendUserOp(scw, bundlerUrl, chainId, tx);
     ```
 
 ### Add a new Guardian
