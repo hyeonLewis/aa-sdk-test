@@ -82,13 +82,3 @@ export const maskJWT = (jwt: JwtWithNonce, whiteList: string[]) => {
     }
     return { ...jwt, payload: maskedPayload };
 };
-
-function main() {
-    const sub = "114667225778547013501";
-    const salt = "b503f14c44a89ffc0f945fee24efa3fa44c3c524866c2ba6c6482e4936a94e8d";
-
-    const subHash = calcSubHash(sub, salt);
-    console.log(subHash);
-}
-
-main();
