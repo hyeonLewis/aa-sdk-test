@@ -45,10 +45,7 @@ export const getProviderNameFromIss = (iss: string) => {
     }
 };
 
-export const getIssFromProviderName = (provider: string | null) => {
-    if (!provider) {
-        return "";
-    }
+export const getIssFromProviderName = (provider: string) => {
     if (provider === "google") {
         return "https://accounts.google.com";
     } else if (provider === "kakao") {
