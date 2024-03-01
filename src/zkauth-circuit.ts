@@ -2,14 +2,7 @@ import { Buffer } from "buffer";
 
 import base64url from "base64url";
 
-import {
-    string2Uints,
-    string2UintsSha256Padded,
-    string2Qwords,
-    uints2String,
-    qwords2String,
-    uints2Buffer,
-} from "./circuit-helpers";
+import { string2Uints, string2UintsSha256Padded, uints2String, uints2Buffer } from "./circuit-helpers";
 
 export const ZkauthJwtV02 = {
     maxSaltedSubLen: 341, // 31 * 11
@@ -19,7 +12,6 @@ export const ZkauthJwtV02 = {
 
     // @param pub  base64url-encoded RSA-2048 public key
     process_input: function (signedJwt: string, pub: string, salt: string) {
-        const numBits = 248;
         const maxLen = 1023; // 31 * 33
         const maxSaltedSubLen = 341; // 31 * 11
         const maxPubLen = 279; // 31 * 9, minimum 31*x that is larger than 256

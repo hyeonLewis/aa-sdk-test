@@ -1,8 +1,8 @@
 {
     "name": "@lewiskim/zkauth-sdk",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "license": "MIT",
-    "description": "SDK for zkAuth",
+    "description": "SDK for zkAuth wallet",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/hyeonLewis/zkauth-sdk.git"
@@ -50,13 +50,13 @@
         "axios": "^1.6.2",
         "base64url": "^3.0.1",
         "buffer": "^6.0.3",
-        "eip-712": "^1.0.0",
         "ethers": "^5.7.0",
+        "ethers-eip712": "^0.2.0",
         "jwt-decode": "^4.0.0",
         "lodash": "^4.17.21"
     },
     "bugs": {
-        "url": "https://github.com/hyeonLewis/zkauth-sdk/issues"
+        "url": "https://github.com/hyeonLewis/zkauth-sdk"
     },
     "homepage": "https://github.com/hyeonLewis/zkauth-sdk#readme",
     "directories": {
