@@ -114,15 +114,3 @@ export const ZkauthJwtV02 = {
         console.log("pub =", pub);
     },
 };
-
-function main() {
-    const jwt =
-        "eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIwYWU2ZDBhNDM5ZTBlYWJhMjM5MWRlYWI0MGM0Y2ZkMCIsInN1YiI6IjMxOTgzNzQ3MjgiLCJhdXRoX3RpbWUiOjE3MDk0MzA2MTUsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwibmlja25hbWUiOiLquYDtmITsmrAiLCJleHAiOjE3MDk0NTIyMTUsImlhdCI6MTcwOTQzMDYxNSwibm9uY2UiOiIweGRhMWRjNjRlOTEyZmRlZWE1Yzk1YTA0MGZlMWIxZmQ4NGMxMGE5NWY1ZWIyNjMyOGJlMzY0ZjYwYjE4MDI0MTg2Nzc5NzI2MjZmMDkwNjkyZGRjMjk0NGQwMGIwNTBhMzQ3MGQ0ZGY1MGY3MjcyOWVjYjBmYzk3OTBkMTZlYzA3In0.OX597Eo3ivTvdksx2-3PyPm9H4byGM0KLVbrbgZhMZdH1u4JdTzBMjnIvmkjCQzohraN9sDqKSfi3aFgk8EBy-TmWZ0KV4drS9tbZ2G0XAq_dZUhhSOOyoDBoveQPXSeFb6Rhnwu8wD7XfFWKSxVg0BzIXLc7Q9sFeycdIfdpJ0uyk3fwZfUiLEXvDFAiU-uKOKPfhGJjqW_XTiAccXq_KifkeyfSacK2XcEq7PXmH_l2i5mSIerSNMwpwIZwO2T7iFtdH9UW21nqrJFzlbKv3zWVDMMsfWDXb-AWTVHESSeRG5m2K5iVqMH_p0jLzJSLeVvbxUUMDml3TEPYXW5vQ";
-    const pub =
-        "qGWf6RVzV2pM8YqJ6by5exoixIlTvdXDfYj2v7E6xkoYmesAjp_1IYL7rzhpUYqIkWX0P4wOwAsg-Ud8PcMHggfwUNPOcqgSk1hAIHr63zSlG8xatQb17q9LrWny2HWkUVEU30PxxHsLcuzmfhbRx8kOrNfJEirIuqSyWF_OBHeEgBgYjydd_c8vPo7IiH-pijZn4ZouPsEg7wtdIX3-0ZcXXDbFkaDaqClfqmVCLNBhg3DKYDQOoyWXrpFKUXUFuk2FTCqWaQJ0GniO4p_ppkYIf4zhlwUYfXZEhm8cBo6H2EgukntDbTgnoha8kNunTPekxWTDhE5wGAt6YpT4Yw";
-    const salt = "306e876778a7080e88d172aa5e669d60cf932df2785b093dfdc7621f4179c059";
-    const result = ZkauthJwtV02.process_input(jwt, pub, salt);
-    console.log(result);
-}
-
-main();
